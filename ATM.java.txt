@@ -1,0 +1,82 @@
+class InsufficientBalance extends RuntimeException {
+    public InsufficientBalance(String s) {
+        super(s);
+    }
+}
+
+class Multiplesof100 extends RuntimeException {
+    public Multiplesof100(String p) {
+        super(p);
+    }
+}
+
+class ATM {
+  // Twilio credentials (replace with your own before running)
+public static final String ACCOUNT_SID = "YOUR_TWILIO_ACCOUNT_SID";
+public static final String AUTH_TOKEN = "YOUR_TWILIO_AUTH_TOKEN";
+public static final String TWILIO_PHONE = "+1XXXXXXXXXX";
+public static final String USER_PHONE = "+91XXXXXXXXXX";
+
+    public static void main(String args[]) {
+        int ac = 50000; // account balance
+        int pin = 1234;
+        int c = 0;
+        Scanner s = new Scanner(System.in);
+
+        System.out.println("Enter pin: ");
+        while (c <= 2) {
+            int n1 = s.nextInt();
+            if (n1 != pin) {
+                System.out.println("Wrong pin");
+                c++;
+            } else {
+                break;
+            }
+        }
+        if (c > 2) {
+            System.out.println("TRY after 24hrs");
+            return;
+        }
+
+        System.out.println("Enter amount: ");
+        int n2 = s.nextInt();
+
+        if (n2 > ac) {
+            throw new InsufficientBalance("Not sufficient money");
+        }
+
+        if (n2 > 10000) {
+            // OTP required
+            int otp = (int) (Math.random() * 9000) + 1000; // 4-digit OTP
+            sendOTP(otp);
+
+            System.out.println("Enter the OTP sent to your mobile: ");
+            int userOtp = s.nextInt();
+
+            if (userOtp != otp) {
+                System.out.println("Incorrect OTP. Transaction cancelled.");
+                return;
+            } else {
+                System.out.println("OTP verified successfully.");
+            }
+        }
+
+        if (n2 % 100 == 0) {
+            System.out.println("Amount withdrawn: " + n2);
+        } else {
+            throw new Multiplesof100("Enter only multiples of 100");
+        }
+    }
+
+    // Function to send OTP using Twilio
+    public static void sendOTP(int otp) {
+        Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+        Message message = Message.creator(
+                new com.twilio.type.PhoneNumber(USER_PHONE),   // To
+                new com.twilio.type.PhoneNumber(TWILIO_PHONE), // From
+                "Your OTP for ATM withdrawal is: " + otp
+        ).create();
+
+        System.out.println("OTP sent to your mobile number.");
+    }
+}
